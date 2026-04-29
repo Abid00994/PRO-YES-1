@@ -387,9 +387,10 @@
 
 <script>
   // ── CONFIG ──────────────────────────────────────────────────────────────────
-  // Change NTFY_TOPIC to a secret random string of your choosing.
-  // Then subscribe to it in the ntfy app on your phone (ntfy.sh).
-  const NTFY_TOPIC = "my-proposal-alert-CHANGE-THIS-RANDOM-STRING";
+  // 1. Visit https://web3forms.com and enter your email to get a free access key.
+  // 2. Paste it below. That's it — no account, no server needed.
+  const WEB3FORMS_KEY = "YOUR_ACCESS_KEY_HERE";
+  const NOTIFY_EMAIL  = "abid0099hif@gmail.com";
   // ────────────────────────────────────────────────────────────────────────────
 
   const messages = [
@@ -468,35 +469,38 @@
     }, 600);
   });
 
-  // ── NOTIFICATION via ntfy.sh ──
+  // ── NOTIFICATION via Web3Forms (free email delivery) ──
   async function sendNotification() {
     const statusEl = document.getElementById("notif-status");
     statusEl.className = "notif-badge sending";
-    statusEl.textContent = "Sending notification… 📨";
+    statusEl.textContent = "Sending email notification… 📨";
 
     const timestamp = new Date().toLocaleString();
     try {
-      const res = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-          "Title": "She said YES! 💍",
-          "Priority": "urgent",
-          "Tags": "heart,tada",
-        },
-        body: `She said YES to your proposal! 🎉\n\nTime: ${timestamp}`,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key:  WEB3FORMS_KEY,
+          subject:     "💍 She said YES to your proposal!",
+          from_name:   "Your Proposal Page",
+          email:       NOTIFY_EMAIL,
+          message:     `🎉 Great news! She clicked YES on your proposal page!\n\nTime: ${timestamp}\n\nGo celebrate! 🥂`,
+          botcheck:    false,
+        }),
       });
 
-      if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
         statusEl.className = "notif-badge";
-        statusEl.textContent = "✓ Notification sent! He knows 💌";
+        statusEl.textContent = "✓ Email sent to you! Check your inbox 💌";
       } else {
-        throw new Error(`HTTP ${res.status}`);
+        throw new Error(data.message || "Unknown error");
       }
     } catch (err) {
       statusEl.className = "notif-badge error";
-      statusEl.textContent = "⚠ Notification failed — check the topic name";
-      console.error("ntfy error:", err);
+      statusEl.textContent = "⚠ Email failed — double-check your access key";
+      console.error("Web3Forms error:", err);
     }
   }
 </script>
